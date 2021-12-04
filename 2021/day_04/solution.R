@@ -1,4 +1,4 @@
-file = 'input_pgr.txt'
+file = 'input.txt'
 
 samples = readLines(file, n = 1)
 samples = as.integer(strsplit(samples, split = ',')[[1]])
@@ -29,9 +29,9 @@ tables_split = split(tables, f = tables$index, drop = TRUE)
 tables_split = lapply(tables_split, function(x) x[,-'index'])
 tables_index = replicate(n = length(tables_split), expr = matrix(rep(FALSE, 25), nrow = 5, ncol = 5), simplify = FALSE)
 
-run = function() {
+run = function(samples, tables_split, tables_index) {
     for (s in seq_along(samples)) {
-        print(samples[s])
+        message(s, ", ", samples[s])
         tables_index = Map(x = tables_split, y = tables_index, function(x,y) {
             samples[s] == x | y
         })
@@ -40,7 +40,7 @@ run = function() {
         }
         for (t in seq_along(tables_index)) {
             # Check winning condition
-            cat("Checking table ", t, '\n')
+            # cat("Checking table ", t, '\n')
             table = tables_index[[t]]
             trus = which(table, arr.ind = TRUE)
             a = any(rle(sort(trus[,'col']))[['lengths']] == 5)
@@ -57,8 +57,8 @@ run = function() {
     }
 }
 
-win = run()
-sum(as.matrix(tables_split[[win$winner]] * ! win$table)) * win$winnum
+win = run(samples = samples, tables_index = tables_index, tables_split = tables_split)
+message("First answer is: ", sum(as.matrix(tables_split[[win$winner]] * ! win$table)) * win$winnum)
 
 # Part 2
 revsamp = rev(samples)
@@ -70,14 +70,14 @@ run = function(samples, tables_index, tables_split) {
         tables_index = Map(x = tables_split, y = tables_index, function(x,y) {
             samples[s] != x & y
         })
-        # if (s < 5) {
-        #     next
-        # }
+        if (s < 5) {
+            next
+        }
         for (t in seq_along(tables_index)) {
             # Check winning condition
-            cat("Checking table ", t, '\n')
+            # cat("Checking table ", t, '\n')
             table = tables_index[[t]]
-            print(table)
+            # print(table)
             trus = which(table, arr.ind = TRUE)
             a = any(rle(sort(trus[,'col']))[['lengths']] == 5)
             b = any(rle(sort(trus[,'row']))[['lengths']] == 5)
@@ -95,8 +95,9 @@ run = function(samples, tables_index, tables_split) {
         }
     }
 }
+
 win = run(samples = revsamp,
     tables_index = tables_index,
     tables_split = tables_split)
 
-sum(as.matrix(tables_split[[win$winner]] * !win$table)) * win$winnum
+message("Second answer is: ", sum(as.matrix(tables_split[[win$winner]] * !win$table)) * win$winnum)
