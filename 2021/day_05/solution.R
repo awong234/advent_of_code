@@ -1,9 +1,8 @@
 checkpoint::checkpoint('2021-11-01')
 
 library(sf)
-library(dplyr)
 library(data.table)
-library(ggplot2)
+# library(ggplot2)
 
 file = 'input.txt'
 
@@ -25,8 +24,8 @@ unlink('lines.awk')
 lines = sf::st_as_sfc(lines)
 
 # View the lines
-ggplot(lines) +
-    geom_sf()
+# ggplot(lines) +
+#     geom_sf()
 
 # Part 1
 idx = 1
@@ -38,14 +37,14 @@ for (i in 1:length(lines)) {
         idx = idx + 1
     }
 }
-straights = st_as_sfc(straights)
-ggplot(straights) + geom_sf()
+straights = sf::st_as_sfc(straights)
+# ggplot(straights) + geom_sf()
 
 get_points_on_line = function(line) {
     xdiff = abs(diff(line[[1]][,1]))
     ydiff = abs(diff(line[[1]][,2]))
     maxdiff = max(xdiff, ydiff)
-    st_line_sample(line, type = 'regular', sample = seq(0, 1, length = maxdiff+1))
+    sf::st_line_sample(line, type = 'regular', sample = seq(0, 1, length = maxdiff+1))
 }
 
 count_intersects = function(lines) {
@@ -56,9 +55,9 @@ count_intersects = function(lines) {
     }
     cat('\n')
     points = do.call(c, points)
-    coords = st_coordinates(points)
+    coords = sf::st_coordinates(points)
     coords[] = as.integer(round(coords,0))
-    points = data.table(coords)
+    points = data.table::data.table(coords)
     intersects = points[, .(N=.N), by=c('X', 'Y')]
     res = sum(intersects[,N] >= 2)
     message("There are ", res, " intersections")
