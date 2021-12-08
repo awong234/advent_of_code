@@ -1,4 +1,4 @@
-checkpoint::checkpoint('2021-11-01')
+checkpoint::checkpoint(config::get('checkpoint_date'))
 
 file = 'input.txt'
 

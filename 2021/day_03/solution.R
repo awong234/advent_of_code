@@ -1,4 +1,4 @@
-checkpoint::checkpoint(config::get('checkpoint_date'))
+checkpoint::checkpoint(config::get("checkpoint_date"))
 dir = here::here('2021', 'day_03')
 mat = as.matrix(read.fwf(file.path(dir, 'input.txt'), widths = rep(1, 12)))
 ncols = ncol(mat)

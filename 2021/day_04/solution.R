@@ -1,3 +1,4 @@
+checkpoint::checkpoint(config::get("checkpoint_date"))
 file = 'input.txt'
 
 samples = readLines(file, n = 1)
