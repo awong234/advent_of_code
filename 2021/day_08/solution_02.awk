@@ -83,9 +83,9 @@ BEGIN {
             # If more than 2 are removed, the answer is either 0 or 9
             else if (n > 2) {
                 letters = $i
-                n=gsub(bracket(four), "", letters)
+                n = gsub(bracket(four), "", letters)
                 # If 3 are removed, then the answer is 0
-                if (n==3) {
+                if (n == 3) {
                     print "0"
                 }
                 else if (n == 4) {
@@ -103,14 +103,14 @@ BEGIN {
             # Either 2, 3, or 5.
             letters=$i
             # Remove seven's letters; if 2 letters are removed it's 2 or 5; if 3 are removed it's 3
-            n=gsub(bracket(seven), "", letters)
-            if (n==3) {
+            n = gsub(bracket(seven), "", letters)
+            if (n == 3) {
                 print "3"
             }
-            else if (n==2){
+            else if (n == 2) {
                 # Remove four's letters;
-                letters=$i
-                n=gsub(bracket(four), "", letters)
+                letters = $i
+                n = gsub(bracket(four), "", letters)
                 # if 2 are removed it's 2;
                 if (n == 2) {
                     print "2"
