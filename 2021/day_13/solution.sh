@@ -1,6 +1,13 @@
 #!/bin/bash
 
-first=$(awk -f solution_01.awk $1 | sort | uniq | wc -l)
+file=$1
+
+if [ -z $file ]
+then
+    file="sample_input.txt"
+fi
+
+first=$(awk -f solution_01.awk $file | sort | uniq | wc -l)
 echo "First answer is $first"
 
-awk -f solution_02.awk $1
+awk -f solution_02.awk $file
