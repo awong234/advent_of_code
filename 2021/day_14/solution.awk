@@ -50,9 +50,9 @@ END {
                 split(p, newsplit, "")
                 newpair1 = sprintf("%s%s", newsplit[1], ins)
                 newpair2 = sprintf("%s%s", ins, newsplit[2])
-                newpairs[newpair1]+=pairs[p]
-                newpairs[newpair2]+=pairs[p]
-                newpairs[p]-=pairs[p]
+                newpairs[newpair1]+=add
+                newpairs[newpair2]+=add
+                newpairs[p]-=add
                 # print "NEW PAIRS:", newpair1, newpair2
                 # print "DROPPED PAIR", p
                 # print ""
