@@ -6,26 +6,7 @@ then
     file="sample_input.txt"
 fi
 
-newseq=$(awk -v N=10 -f solution1.3.awk $file)
-awk '
-BEGIN {
-    FS = ""
-}
-{
-    for (i=1; i<=NF; i++) {
-        letters[$i]++
-    }
-}
-END {
-    for (i in letters) {
-        print letters[i]
-    }
-}
-' <<< $newseq | sort -n > tmp.txt
-
-
-max=$(tail tmp.txt -n 1)
-min=$(head tmp.txt -n 1)
-rm tmp.txt
-
-echo "Solution 1: " $(($max - $min))
+s1=$(awk -v N=10 -f solution.awk $file)
+echo "Solution 1 is: $s1"
+s2=$(awk -v N=40 -f solution.awk $file)
+echo "Solution 2 is: $s2"
