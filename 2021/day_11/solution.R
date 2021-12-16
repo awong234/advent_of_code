@@ -1,4 +1,3 @@
-checkpoint::checkpoint(config::get('checkpoint_date'))
 file = 'input_pgr.txt'
 first = readLines(file, n = 1)
 mat = as.matrix(read.fwf(file = file, widths = rep(1, nchar(first))))
@@ -25,6 +24,19 @@ neighbors = function(ind) {
 
 to_cell = function(ind) {
     (10 * (ind[,1]-1)) + ind[,2]
+}
+
+all_neighbors = function(mat) {
+    rowadd = 0
+    ns = list()
+    for (i in 1:ncol(mat)) {
+        for (j in 1:ncol(mat)) {
+            cell = rowadd + j
+            ns[[cell]] = to_cell(neighbors(c(i,j)))
+        }
+        rowadd = rowadd + 10
+    }
+    ns
 }
 
 promote = function(vec, at = 1:100, depth = 0, verbose = FALSE) {
@@ -59,15 +71,7 @@ promote = function(vec, at = 1:100, depth = 0, verbose = FALSE) {
     )
 }
 
-rowadd = 0
-ns = list()
-for (i in 1:ncol(mat)) {
-    for (j in 1:ncol(mat)) {
-        cell = rowadd + j
-        ns[[cell]] = to_cell(neighbors(c(i,j)))
-    }
-    rowadd = rowadd + 10
-}
+ns = all_neighbors(mat)
 
 part1 = function() {
     vec = as.integer(mat)
@@ -106,4 +110,6 @@ part2 = function() {
     return(first_step)
 }
 
-cat("Part II solution is:\t", part2(), "\n")
+first_splode = part2()
+
+cat("Part II solution is:\t", first_splode, "\n")
