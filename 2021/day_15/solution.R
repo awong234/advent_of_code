@@ -1,7 +1,5 @@
 checkpoint::checkpoint(config::get('checkpoint_date'))
 
-library(furrr)
-
 file = 'input_pgr.txt'
 w = nchar(readLines(file, n = 1))
 mat = as.matrix(read.fwf(file = file, widths = rep(1, w)))
@@ -149,17 +147,18 @@ simulate = function(N, mat) {
     return(outpath)
 }
 
-sums = rep(NA, N)
+sums = rep(NA, 1000)
 minsum = Inf
 plotops = par()
 par(mfrow = c(1,2))
+pathlist = list()
 
 times = vector(mode = 'numeric', length = 1000)
 
 for (i in 1:1000) {
     # message(i)
     a = Sys.time()
-    path = make_path(mat, F, exag_factor = 2, direction_weights = c(0, 1, 0, 1), limit = minsum)
+    pathlist[[i]] = path = make_path(mat, F, exag_factor = 2, direction_weights = c(0, 1, 0, 1), limit = minsum)
     b = Sys.time()
     times[i] = b-a
     sums[i] = sum(path[-1,'z'])
@@ -170,6 +169,17 @@ for (i in 1:1000) {
         plot(x = 1:i, y = Reduce(f = min, x = na.omit(sums), accumulate = TRUE), type = 'l')
     }
 }
+
+library(ggplot2)
+names(pathlist) = 1:1000
+pathdf = lapply(pathlist, function(x) {
+    x = as.data.frame(x)
+    x[['z']] = cumsum(x[['z']])
+    x
+})
+paths = dplyr::bind_rows(pathdf, .id = 'id')
+ggplot(paths) +
+    geom_line(aes(x = x, y = y, color = -z, group = id), alpha = 0.01)
 
 library(doParallel)
 cores = detectCores() - 1
