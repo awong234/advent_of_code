@@ -2,8 +2,6 @@ checkpoint::checkpoint(config::get('checkpoint_date'))
 
 library(furrr)
 
-# future::plan('multisession')
-
 file = 'input_pgr.txt'
 w = nchar(readLines(file, n = 1))
 mat = as.matrix(read.fwf(file = file, widths = rep(1, w)))
@@ -50,39 +48,27 @@ get_neighbors = function(pt, mat, probs = NULL, dir_wt) {
     return(nbr)
 }
 
-hash = function(x) {
-    UseMethod('hash', x)
-}
-
-# bench::mark(
-#     digest::sha1(x = c(1,1)),
-#     digest::digest(c(1,1), algo = "crc32"),
-#     digest::digest(c(1,1), algo = "spookyhash"),
-#     digest::digest(c(1,1), algo = "xxhash32"),
-#     paste0(c(1,1), collapse = ''),
-#     stringr::str_c(c(1,1), collapse = ''),
-#     stringi::stri_c(c(1,1), collapse = ""),
-#     check = FALSE
-# )
-
-hash.default = function(x) {
-    # digest::digest(x, algo = 'sha1')
-    paste0(x, collapse = '')
-}
-
-hash.matrix = function(x) {
-    hashes = vector('character', nrow(x))
-    for (i in 1:nrow(x)) {
-        hashes[i] = hash.default(x[i, ])
-    }
-    return(hashes)
-}
-
 # -----------
 
 set.seed(1)
 
-make_path = function(mat, plot = FALSE, exag_factor = 1, plot_delay = 0.1, direction_weights = c(1,1,1,1)) {
+make_path = function(mat, plot = FALSE, exag_factor = 1, plot_delay = 0.1, direction_weights = c(1,1,1,1), limit = Inf) {
+    hash = function(x) {
+        UseMethod('hash', x)
+    }
+
+    hash.default = function(x) {
+        # digest::digest(x, algo = 'sha1')
+        paste0(x, collapse = '')
+    }
+
+    hash.matrix = function(x) {
+        hashes = vector('character', nrow(x))
+        for (i in 1:nrow(x)) {
+            hashes[i] = hash.default(x[i, ])
+        }
+        return(hashes)
+    }
     plot_path = function(x) {
         plot.new()
         plot.window(xlim = c(1,dim[1]), ylim = c(1,dim[2]))
@@ -92,43 +78,50 @@ make_path = function(mat, plot = FALSE, exag_factor = 1, plot_delay = 0.1, direc
         axis(side = 1, at = seq(1, dim[1]), labels = seq(1, dim[1]), tick = TRUE)
         axis(side = 2, at = seq(1, dim[1]), labels = seq(1, dim[1]), tick = TRUE)
     }
+    dim = dim(mat)
     path = matrix(NA, nrow = prod(dim), ncol = 3)
     visited = matrix(numeric(0), nrow = 0, ncol = 3)
-    dim = dim(mat)
     current = cbind(matrix(c(1,1), nrow = 1), mat[1,1])
     colnames(path) = colnames(current) = c('x', 'y', 'z')
     path[1, ] = current
+    pathsum = 0
+    hashes = hash(path[1, ])
     i = 1
+    cat('\n')
     while (TRUE) {
+        cat(pathsum, '\r')
         if (all(current[, c(1,2)] == dim)) {
             break
         }
-        # browser()
+        if (pathsum > limit) {
+            # cat("EARLY END")
+            break
+        }
         nbrs = get_neighbors(current[, c('x', 'y'), drop=FALSE], mat, probs = NULL, dir_wt = direction_weights)
+        nbr_hashes = hash(nbrs[, c('x', 'y', 'z')])
         # Remove visited
-        keep = sapply(1:nrow(nbrs), function(x) {
-            !any(nbrs[x,1] == visited[,1] & nbrs[x,2] == visited[,2], na.rm = TRUE)
-        })
-        nbrs = nbrs[keep, , drop=FALSE]
+        nbrs = nbrs[! nbr_hashes %in% hashes, , drop=FALSE]
         # Pick next location
         if (nrow(nbrs) == 0) {
             # Backed into a corner, back up
+            browser()
             path[i, ] = c(NA, NA, NA)
+            pathsum = pathsum - current[, 'z']
             i = i - 1
             current = path[i, , drop=FALSE]
+            hashes = c(hashes, hash(current))
         } else {
             i = i + 1
             probs = nbrs[, 'p'] ^ exag_factor / sum(nbrs[, 'p'] ^ exag_factor)
             current = nbrs[sample(1:nrow(nbrs), size = 1, prob = probs), c('x', 'y', 'z'), drop=FALSE]
+            hashes = c(hashes, hash(current))
             path[i,] = current
-            visited = unique(rbind(visited, current))
+            pathsum = pathsum + current[, 'z']
         }
         if (plot) {
             plot_path(path)
             Sys.sleep(plot_delay)
         }
-        # cat(i, '\r')
-
     }
 
     path = path[complete.cases(path), ]
@@ -136,29 +129,60 @@ make_path = function(mat, plot = FALSE, exag_factor = 1, plot_delay = 0.1, direc
     return(path)
 }
 
-path = make_path(mat, F, exag_factor = 2, plot_delay = 0.05, direction_weights = c(0, 1, 0, 1))
+path = make_path(mat, F, exag_factor = 2, plot_delay = 0.05, direction_weights = c(0, 1, 0, 1), limit = Inf)
 plot(path, type = 'l')
 mtext(sum(path[,'z']), side = 3)
 
 # ----------
 
-N = 5000
+simulate = function(N, mat) {
+    minsum = Inf
+    for (i in 1:N) {
+        cat(i, '\n')
+        path = make_path(mat, F, exag_factor = 2, direction_weights = c(0, 1, 0, 1), limit = minsum)
+        pathsum = sum(path[-1,'z'])
+        if (pathsum < minsum) {
+            minsum = pathsum
+            outpath = path
+        }
+    }
+    return(outpath)
+}
+
 sums = rep(NA, N)
-paths = list()
 minsum = Inf
 plotops = par()
-
 par(mfrow = c(1,2))
-for (i in 1:N) {
-    cat(i, '\r')
-    paths[[i]] = make_path(mat, F, exag_factor = 2, direction_weights = c(0, 1, 0, 1))
-    sums[i] = sum(paths[[i]][-1,'z'])
-    if (sums[i] == min(sums,na.rm=TRUE)) {
+
+times = vector(mode = 'numeric', length = 1000)
+
+for (i in 1:1000) {
+    # message(i)
+    a = Sys.time()
+    path = make_path(mat, F, exag_factor = 2, direction_weights = c(0, 1, 0, 1), limit = minsum)
+    b = Sys.time()
+    times[i] = b-a
+    sums[i] = sum(path[-1,'z'])
+    if (sums[i] < minsum) {
         minsum = sums[i]
-        plot(paths[[which.min(sums)]], type = 'l')
+        plot(path, type = 'l')
         mtext(paste0("Iter ", i, " val ", minsum), side = 3)
         plot(x = 1:i, y = Reduce(f = min, x = na.omit(sums), accumulate = TRUE), type = 'l')
     }
 }
 
-# --------------
+library(doParallel)
+cores = detectCores() - 1
+registerDoParallel(cores = cores)
+paths = foreach (i = 1:cores) %dopar% {
+    sink(file = sprintf("log_%s.txt", i))
+    out = simulate(8000, mat)
+    sink()
+    out
+}
+
+min(sapply(paths, function(x) {
+    sum(x[-1,'z'])
+}))
+
+# ---------
