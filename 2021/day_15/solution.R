@@ -2,7 +2,7 @@ checkpoint::checkpoint(config::get('checkpoint_date'))
 
 library(furrr)
 
-future::plan('multisession')
+# future::plan('multisession')
 
 file = 'input_pgr.txt'
 w = nchar(readLines(file, n = 1))
@@ -10,7 +10,7 @@ mat = as.matrix(read.fwf(file = file, widths = rep(1, w)))
 
 dim = dim(mat)
 
-get_neighbors = function(pt, mat, probs = NULL) {
+get_neighbors = function(pt, mat, probs = NULL, dir_wt) {
     dim = dim(mat)
     pt = unname(pt)
     down = pt + c(1,0)
@@ -28,8 +28,17 @@ get_neighbors = function(pt, mat, probs = NULL) {
         # Select based on the z value -- but weight down and right heavier
         probs = nbr[, 'z']
         probs = (max(probs) + 1) - probs
-        probs = probs * c(1, 2, 1, 2)[keep]
+        probs = probs * dir_wt[keep]
         nbr = cbind(nbr, probs)
+        # If at the margin, don't allow it to move away from the goal
+        if (pt[1] == dim[1]) {
+            # At the bottom; don't move left
+            probs = probs * c(1, 1, 0, 1)[keep]
+        }
+        if (pt[2] == dim[2]) {
+            # At the right; don't move down
+            probs = probs * c(1, 0, 1, 1)[keep]
+        }
 
     } else {
         probs = probs[keep]
@@ -73,7 +82,7 @@ hash.matrix = function(x) {
 
 set.seed(1)
 
-make_path = function(mat, plot = FALSE, exag_factor = 1) {
+make_path = function(mat, plot = FALSE, exag_factor = 1, plot_delay = 0.1, direction_weights = c(1,1,1,1)) {
     plot_path = function(x) {
         plot.new()
         plot.window(xlim = c(1,dim[1]), ylim = c(1,dim[2]))
@@ -84,65 +93,72 @@ make_path = function(mat, plot = FALSE, exag_factor = 1) {
         axis(side = 2, at = seq(1, dim[1]), labels = seq(1, dim[1]), tick = TRUE)
     }
     path = matrix(NA, nrow = prod(dim), ncol = 3)
+    visited = matrix(numeric(0), nrow = 0, ncol = 3)
     dim = dim(mat)
     current = cbind(matrix(c(1,1), nrow = 1), mat[1,1])
     colnames(path) = colnames(current) = c('x', 'y', 'z')
     path[1, ] = current
-    hashes = hash(path[1, ])
     i = 1
     while (TRUE) {
         if (all(current[, c(1,2)] == dim)) {
             break
         }
-        nbrs = get_neighbors(current[, c('x', 'y'), drop=FALSE], mat, probs = NULL)
+        # browser()
+        nbrs = get_neighbors(current[, c('x', 'y'), drop=FALSE], mat, probs = NULL, dir_wt = direction_weights)
         # Remove visited
-        nbr_hashes = hash(nbrs[, c('x', 'y', 'z')])
-        nbrs = nbrs[! nbr_hashes %in% hashes, , drop=FALSE]
+        keep = sapply(1:nrow(nbrs), function(x) {
+            !any(nbrs[x,1] == visited[,1] & nbrs[x,2] == visited[,2], na.rm = TRUE)
+        })
+        nbrs = nbrs[keep, , drop=FALSE]
         # Pick next location
         if (nrow(nbrs) == 0) {
             # Backed into a corner, back up
             path[i, ] = c(NA, NA, NA)
             i = i - 1
             current = path[i, , drop=FALSE]
-            hashes = c(hashes, hash(current))
         } else {
             i = i + 1
             probs = nbrs[, 'p'] ^ exag_factor / sum(nbrs[, 'p'] ^ exag_factor)
             current = nbrs[sample(1:nrow(nbrs), size = 1, prob = probs), c('x', 'y', 'z'), drop=FALSE]
-            hashes = c(hashes, hash(current))
-            path[i, ] = current
+            path[i,] = current
+            visited = unique(rbind(visited, current))
         }
         if (plot) {
             plot_path(path)
-            Sys.sleep(0.1)
+            Sys.sleep(plot_delay)
         }
+        # cat(i, '\r')
 
     }
 
-    path = path[!is.na(path[,1]), ]
-    # attr(path, 'hashes') = hash(path)
+    path = path[complete.cases(path), ]
 
     return(path)
 }
 
-path = make_path(mat, F, exag_factor = 2)
+path = make_path(mat, F, exag_factor = 2, plot_delay = 0.05, direction_weights = c(0, 1, 0, 1))
 plot(path, type = 'l')
 mtext(sum(path[,'z']), side = 3)
+
+# ----------
+
 N = 5000
 sums = rep(NA, N)
 paths = list()
 minsum = Inf
+plotops = par()
+
+par(mfrow = c(1,2))
 for (i in 1:N) {
     cat(i, '\r')
-    paths[[i]] = make_path(mat, F, exag_factor = 2)
+    paths[[i]] = make_path(mat, F, exag_factor = 2, direction_weights = c(0, 1, 0, 1))
     sums[i] = sum(paths[[i]][-1,'z'])
     if (sums[i] == min(sums,na.rm=TRUE)) {
         minsum = sums[i]
         plot(paths[[which.min(sums)]], type = 'l')
         mtext(paste0("Iter ", i, " val ", minsum), side = 3)
+        plot(x = 1:i, y = Reduce(f = min, x = na.omit(sums), accumulate = TRUE), type = 'l')
     }
 }
-
-paths = furrr::future_map(1:N, .f = ~make_path(mat, F, exag_factor = 2))
 
 # --------------
