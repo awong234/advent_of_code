@@ -7,3 +7,11 @@
 .bar {
     fill: blue;
 }
+
+.thead, .trow {
+    width: 100px;
+}
+
+.thead {
+    text-align: left;
+}

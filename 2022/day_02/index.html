@@ -11,6 +11,7 @@
     <script src="../d3-7.6.1/dist/d3.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.5.1/d3-annotation.min.js"></script>
+    <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
 </head>
 
 <body>
@@ -22,16 +23,18 @@
                 <div id="dynamic-1">
                     <table id="d1-table">
                         <tr>
-                            <th>Round</th>
-                            <th>Opponent</th>
-                            <th>Player</th>
-                            <th>Score</th>
+                            <th class="thead">Round</th>
+                            <th class="thead">Opponent</th>
+                            <th class="thead">Player</th>
+                            <th class="thead">Outcome</th>
+                            <th class="thead">Score</th>
                         </tr>
                         <tr>
-                            <td id="d1-table-round"></td>
-                            <td id="d1-table-op-shape"></td>
-                            <td id="d1-table-my-shape"></td>
-                            <td id="d1-table-score"></td>
+                            <td class="trow" id="d1-table-round"></td>
+                            <td class="trow" id="d1-table-op-shape"></td>
+                            <td class="trow" id="d1-table-my-shape"></td>
+                            <td class="trow" id="d1-table-outcome"></td>
+                            <td class="trow" id="d1-table-score"></td>
                         </tr>
                     </table>
                     <div id="d1-chart"></div>
@@ -41,12 +44,23 @@
         <div id="problem2"></div>
         <div>
             <h2>Answer:</h1>
+                <table id="d2-table">
+                    <tr>
+                        <th class="thead">Round</th>
+                        <th class="thead">Opponent</th>
+                        <th class="thead">Player</th>
+                        <th class="thead">Outcome</th>
+                        <th class="thead">Score</th>
+                    </tr>
+                    <tr>
+                        <td class="trow" id="d2-table-round"></td>
+                        <td class="trow" id="d2-table-op-shape"></td>
+                        <td class="trow" id="d2-table-my-shape"></td>
+                        <td class="trow" id="d2-table-outcome"></td>
+                        <td class="trow" id="d2-table-score"></td>
+                    </tr>
+                </table>
                 <div id="output-2"></div>
-        </div>
-        <div>
-            <h1>Charts</h1>
-            <button id="answer">Answer 1</button>
-            <div id="output-plot"></div>
         </div>
     <script src="index.js" type="module"></script>
 </body>
