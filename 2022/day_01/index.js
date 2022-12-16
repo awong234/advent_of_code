@@ -1,5 +1,5 @@
 import { text } from "https://cdn.skypack.dev/d3-fetch@3";
-import { parse_readme } from "../readme_parse.js"
+import { parse_readme } from "../common.js"
 
 // Analyze dataset -- Part I
 
