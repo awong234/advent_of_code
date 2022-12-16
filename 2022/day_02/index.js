@@ -4,6 +4,15 @@ import { parse_readme, input_data, record_input_data } from "../common.js"
 parse_readme()
 record_input_data()
 
+/*
+Learnings this day:
+- How to reverse an object, keys for values
+- Continuing to understand object scope
+- Use of await sleep to alter HTML on increments
+- More practice with `then` and callbacks
+*/
+
+
 // Begin analysis
 var data = input_data()
 
