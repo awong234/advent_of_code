@@ -1,0 +1,9 @@
+#input-data-1 {
+    height: 30vh;
+    width: 15%;
+    overflow-y: scroll;
+}
+
+.bar {
+    fill: blue;
+}
