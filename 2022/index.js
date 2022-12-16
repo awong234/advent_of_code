@@ -1,5 +1,4 @@
 var doc = document.getElementById("day-links")
-// var day_names = []
 
 for (let i = 1; i <= 25; i++) {
     var a = document.createElement('a')
