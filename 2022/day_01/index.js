@@ -1,16 +1,9 @@
 import { text } from "https://cdn.skypack.dev/d3-fetch@3";
+import { parse_readme } from "../readme_parse.js"
 
 // Analyze dataset -- Part I
 
-const readme = 'readme.md'
-
-fetch(readme)
-    .then(response => response.text())
-    .then(txt => {
-        let part1 = txt.split("# Part Two")[0]
-        document.getElementById('problem1').innerHTML = marked.parse(part1)
-    })
-
+parse_readme()
 
 const input = "input.txt";
 var elves, maxval, maxid, datalines
@@ -58,13 +51,6 @@ var answer_div = document.getElementById("output-1")
 answer_div.appendChild(document.createElement('pre')).append(maxval_statement + "\n" + maxid_statement)
 
 // Analyze -- Part II
-
-fetch(readme)
-    .then(response => response.text())
-    .then(txt => {
-        let part1 = "# Part 2" + txt.split("# Part Two")[1]
-        document.getElementById('problem2').innerHTML = marked.parse(part1)
-    })
 
 var sum
 
