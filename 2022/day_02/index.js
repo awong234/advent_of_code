@@ -2,7 +2,8 @@
 import { parse_readme, input_data, record_input_data } from "../common.js"
 
 parse_readme()
-record_input_data()
+var data = await input_data()
+record_input_data(data)
 
 /*
 Learnings this day:
@@ -14,7 +15,6 @@ Learnings this day:
 
 
 // Begin analysis
-var data = input_data()
 
 const op_decode = {
     "A": "rock",
@@ -206,11 +206,9 @@ function analyze_2(data) {
     a2.appendChild(document.createElement("pre")).append(output_statement)
 }
 
-data.then(d => {
-    var datalines
-    datalines = d.split("\n")
-    analyze_1(datalines)
-    analyze_2(datalines)
-})
+var datalines
+datalines = data.split("\n")
+analyze_1(datalines)
+analyze_2(datalines)
 
 

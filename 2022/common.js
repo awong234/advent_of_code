@@ -28,10 +28,7 @@ export async function input_data () {
     return datalines
 }
 
-export function record_input_data () {
-    let datalines = input_data()
-    datalines.then(val => {
-        let div_input_data = document.getElementById("input-data-1")
-        div_input_data.appendChild(document.createElement('pre')).append(val)
-    })
+export function record_input_data (d) {
+    let div_input_data = document.getElementById("input-data-1")
+    div_input_data.appendChild(document.createElement('pre')).append(d)
 }
