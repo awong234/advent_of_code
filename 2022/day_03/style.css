@@ -1,0 +1,21 @@
+#input-data-1 {
+    height: 30vh;
+    width: fit-content;
+    overflow-y: scroll;
+}
+
+.red-text {
+    color:red;
+}
+
+.bar {
+    fill: blue;
+}
+
+.thead, .trow {
+    width: 100px;
+}
+
+.thead {
+    text-align: left;
+}
