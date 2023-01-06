@@ -24,7 +24,7 @@ export function parse_readme () {
 
 export async function input_data () {
     const input = "input.txt";
-    var datalines = await text(input)
+    var datalines = text(input)
     return datalines
 }
 
