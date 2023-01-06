@@ -1,0 +1,11 @@
+#input-data-1 {
+    height: 30vh;
+    width: 30vw;
+    overflow-y: scroll;
+}
+
+#dynamic-1 {
+    height: 500px;
+    width: 600px;
+    overflow-y: scroll;
+}
