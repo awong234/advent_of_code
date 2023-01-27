@@ -1,0 +1,5 @@
+#input-data-1 {
+    height: 30vh;
+    width: fit-content;
+    overflow-y: scroll;
+}
