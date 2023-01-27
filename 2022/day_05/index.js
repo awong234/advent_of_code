@@ -53,7 +53,7 @@ function parse_data (datalines) {
     var crates = parse_crate_data(data)
     var moves  = parse_move_data(data)
 
-    // console.log(crates)
+    console.log(crates)
     // console.log(moves)
 
     return({"crates": crates, "instructions": moves})
@@ -63,38 +63,6 @@ const dimensions = { "height": 300, "width": 500 }
 const margin = { "top": 30, "left": 30, "right": 30, "bottom": 30 }
 d3.select("#dynamic-1").append('svg').attr('width', dimensions.width).attr('height', dimensions.height).append("g").attr("transform", `translate(${margin.left}, ${margin.right})`).attr('id', 'svg-1')
 d3.select("#dynamic-2").append('svg').attr('width', dimensions.width).attr('height', dimensions.height).append("g").attr("transform", `translate(${margin.left}, ${margin.right})`).attr('id', 'svg-2')
-
-function update_crates (crates, svgid) {
-    const svg = d3.select(svgid)
-    const crate_columns = Array(crates.length).fill().map((_,i) => i)
-    const crate_stack = Array(Math.max(...crates.map(e => e.length))).fill().map((_,i) => i)
-    const x = d3.scaleBand().domain(crate_columns).range([0, dimensions.width])
-    const y = d3.scaleBand().domain(crate_stack).range([dimensions.height - margin.top, 0])
-    var crates_obj = []
-    crates.map((column, column_index) => {
-        column.map((letter,i) => {
-            let obj = {
-                "column": column_index,
-                "stack" : i,
-                "letter": letter
-            }
-            crates_obj.push(obj)
-        })
-    })
-    // console.log(crates_obj)
-    svg.selectAll('text')
-        .data(crates_obj)
-        .join("text")
-        .attr("col", d => d.column)
-        .attr("stack", d => d.stack)
-        .attr("x", d => x(d.column))
-        .attr("y", d => y(d.stack))
-        .transition()
-        .duration(500)
-        .text(d => d.letter)
-        .attr("x", d => x(d.column))
-        .attr("y", d => y(d.stack))
-}
 
 // Iterate over instructions, altering crates at the same time
 function operate1 () {
@@ -118,15 +86,93 @@ var ans1 = document.getElementById('output-1')
 ans1.innerHTML = crates_done.map(e => e[e.length - 1]).join("")
 
 
+function operate2() {
+    var parsed = parse_data(datalines)
+    var crates = parsed.crates
+    var instructions = parsed.instructions
+    instructions.map(d => {
+        let amount = d.amount
+        let source = d.source - 1
+        let dest = d.dest - 1
+        let crates_moving = crates[source].splice(-amount, amount)
+        crates[dest].splice(crates[dest].length, 0, ...crates_moving)
+    })
+    return (crates)
+}
+
+var crates_done2 = operate2()
+
+var ans2 = document.getElementById('output-2')
+ans2.innerHTML = crates_done2.map(e => e[e.length - 1]).join("")
+
+
 /* PLOTTING */
 
+function update_crates(crates, svgid) {
+    const svg = d3.select(svgid)
+    const crate_columns = Array(crates.length).fill().map((_, i) => i)
+    const crate_stack = Array(Math.max(...crates.map(e => e.length))).fill().map((_, i) => i)
+    const x = d3.scaleBand().domain(crate_columns).range([0, dimensions.width])
+    const y = d3.scaleBand().domain(crate_stack).range([dimensions.height - margin.top, 0])
+    var crates_obj = []
+    crates.map((column, column_index) => {
+        column.map((letter, i) => {
+            let obj = {
+                "column": column_index,
+                "stack": i,
+                "letter": letter
+            }
+            crates_obj.push(obj)
+        })
+    })
+    // Need to sort to preserve order of object, so transition can apply properly
+    crates_obj.sort((a, b) => {
+        if (a.letter > b.letter) return (-1)
+        if (a.letter < b.letter) return (1)
+        return (0)
+    })
+    // console.log(crates_obj)
+    svg.selectAll('text')
+        .data(crates_obj)
+        .join(
+            enter => enter.append('text')
+                .attr("col", d => d.column)
+                .attr("stack", d => d.stack)
+                .attr("x", d => x(d.column))
+                .attr("y", d => y(d.stack))
+                .text(d => d.letter)
+                .transition()
+                .duration(500)
+                .selection()
+            ,
+            update => update.transition().duration(500)
+                .attr("col", d => d.column)
+                .attr("stack", d => d.stack)
+                .attr("x", d => x(d.column))
+                .attr("y", d => y(d.stack))
+                .text(d => d.letter)
+        )
+}
+
+
 var instruction_id = 1
+
 function reset1 () {
     instruction_id = 1
     init_plot1()
+    init_plot2()
 }
 
-document.getElementById('button1').onclick = plot1
+document.getElementById('button1').onclick = function() {
+    plot1()
+    plot2()
+    var parsed = parse_data(datalines)
+    var instructions = parsed.instructions
+    if (instruction_id <= instructions.length) {
+        instruction_id++
+    }
+    record_instruction('instruction-id-1')
+}
 document.getElementById('reset1').onclick = reset1
 
 function init_plot1() {
@@ -139,8 +185,19 @@ function init_plot1() {
 init_plot1()
 
 function record_instruction(id) {
+    var parsed = parse_data(datalines)
+    var instructions = parsed.instructions
     var input = document.getElementById(id)
-    input.innerHTML = instruction_id
+    var this_instruction = instructions[instruction_id-2]
+    if (this_instruction != undefined) {
+        var amount = this_instruction.amount
+        var source = this_instruction.source
+        var dest = this_instruction.dest
+        input.innerHTML = `Instruction ${instruction_id - 1}: Move ${amount} from ${source} to ${dest}`
+    } else {
+        input.innerHTML = `Instruction 0`
+    }
+
 }
 
 function plot1 () {
@@ -159,28 +216,28 @@ function plot1 () {
         }
     })
     update_crates(crates, '#svg-1')
-    if (instruction_id <= instructions.length) {
-        instruction_id++
-        record_instruction('instruction-id-1')
-    }
 }
 
+function init_plot2() {
+    var parsed = parse_data(datalines)
+    var crates = parsed.crates
+    update_crates(crates, '#svg-2')
+}
 
-function operate2 () {
+init_plot2()
+
+function plot2() {
     var parsed = parse_data(datalines)
     var crates = parsed.crates
     var instructions = parsed.instructions
-    instructions.map(d => {
-        let amount = d.amount
-        let source = d.source - 1
-        let dest = d.dest - 1
-        let crates_moving = crates[source].splice(-amount, amount)
-        crates[dest].splice(crates[dest].length, 0, ...crates_moving)
+    instructions.map((d, i) => {
+        if (i < instruction_id) {
+            let amount = d.amount
+            let source = d.source - 1
+            let dest = d.dest - 1
+            let crates_moving = crates[source].splice(-amount, amount)
+            crates[dest].splice(crates[dest].length, 0, ...crates_moving)
+        }
     })
-    return (crates)
+    update_crates(crates, '#svg-2')
 }
-
-var crates_done2 = operate2()
-
-var ans2 = document.getElementById('output-2')
-ans2.innerHTML = crates_done2.map(e => e[e.length - 1]).join("")
