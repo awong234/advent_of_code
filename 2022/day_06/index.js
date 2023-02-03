@@ -41,28 +41,29 @@ var ans1 = analyze1(datalines)
 var answerbox = document.getElementById("output-1").appendChild(document.createElement("pre"))
 answerbox.append(`Position: ${ans1.index}, Letters: ${ans1.letters}`)
 
-async function viz1 (datastring) {
+async function viz1 (datastring, unit_length, total_length, problem_number) {
     var i = 0
-    const svg = d3.select("#dynamic-1").append("svg")
-        .attr("width", 300)
-        .attr("height", 150)
+    const svg = d3.select("#dynamic-" + problem_number).append("svg")
+        .attr("width", 1000)
+        .attr("height", 20)
+        .append('g')
         // .attr("translate", `translate(50px, 150px)`)
-    const ans_index = document.getElementById("output-1-position")
-    const ans_letters = document.getElementById("output-1-letters")
+    const ans_index = document.getElementById(`output-${problem_number}-position`)
+    const ans_letters = document.getElementById(`output-${problem_number}-letters`)
     const letter_buffer = 10
     while (true) {
-        var unit = datastring.slice(i, i + 4)
+        var unit = datastring.slice(i, i + unit_length)
         var unit_extended
         if (i < 4) {
-            unit_extended = datastring.slice(0, i + 10)
+            unit_extended = datastring.slice(0, i + total_length)
             unit_extended = " ".repeat(4-i) + unit_extended
         } else {
-            unit_extended = datastring.slice(i - 4, i + 10)
+            unit_extended = datastring.slice(i - 4, i + total_length)
         }
 
         var letters = unit_extended.split("")
         var letters_obj = letters.map((d,i) => {
-            return({"pos": i, "letter": d, "focus": i >= 4 & i < 8})
+            return({"pos": i, "letter": d, "focus": i >= 4 & i < 4 + unit_length})
         })
         var table = tabulate_letters(unit)
         var repeated_letters = get_repeats(table)
@@ -71,7 +72,6 @@ async function viz1 (datastring) {
                 .data(letters_obj)
                 .join('text')
                 .attr('y', 15)
-                .transition()
                 .attr('x', (d, i) => i * letter_buffer)
                 .attr('fill', (d, i) => d.focus === 0 ? 'gray' : 'blue')
                 .text(d => d.letter)
@@ -81,19 +81,18 @@ async function viz1 (datastring) {
                 .data(letters_obj)
                 .join('text')
                 .attr('y', 15)
-                .transition()
                 .attr('x', (d, i) => i * letter_buffer)
                 .attr('fill', (d, i) => d.focus === 0 ? 'gray' : 'blue')
                 .text(d => d.letter)
             break
         }
-        ans_index.innerHTML = i+4
+        ans_index.innerHTML = i+unit_length
         ans_letters.innerHTML = unit
-        await new Promise(r => setTimeout(r, 30));
+        await new Promise(r => setTimeout(r, 50));
     }
 }
 
-viz1(datalines)
+viz1(datalines, 4, 100, 1)
 
 // Problem 2
 
@@ -115,3 +114,5 @@ var ans2 = analyze2(datalines)
 
 answerbox = document.getElementById("output-2").appendChild(document.createElement("pre"))
 answerbox.append(`Position: ${ans2.index}, Letters: ${ans2.letters}`)
+
+viz1(datalines, 14, 100, 2)
