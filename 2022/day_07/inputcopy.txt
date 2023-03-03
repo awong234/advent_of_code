@@ -1,0 +1,20 @@
+$ cd /
+$ ls
+dir a
+1000000 naught
+$ cd a
+$ ls
+dir a
+dir b
+10 a
+$ cd a
+$ ls
+dir a
+10 b
+$ cd a
+$ ls
+10 d
+$ cd ..
+$ cd ..
+$ cd b
+10 c
