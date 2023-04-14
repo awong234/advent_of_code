@@ -76,3 +76,7 @@ Find the three largest basins and multiply their sizes together. In the above ex
 
 What do you get if you multiply together the sizes of the three largest basins?
 
+# Visualization of the fiery smoke basin
+
+https://user-images.githubusercontent.com/37594391/231910547-e88d5dd5-0e9d-4750-b4d0-719fe526f035.mp4
+
