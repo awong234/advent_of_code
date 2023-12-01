@@ -10,6 +10,7 @@ BEGIN {
 {
     start = 1
     len = 1
+    # Find first number
     while(1) {
         word = substr($0, start, len)
         if (word ~ /[[:digit:]]/) {
