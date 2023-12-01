@@ -8,38 +8,48 @@ BEGIN {
     }
 }
 {
-    print "NEW LINE: " $0
     start = 1
     len = 1
-    collect = ""
-    for (i=1; i<=length; i++) {
-        # print "ITER " i
+    while(1) {
         word = substr($0, start, len)
-        # print "Word so far is: " word
         if (word ~ /[[:digit:]]/) {
-            # print "found digit"
-            start=i+1
-            len = 1
             gsub(/[a-zA-Z]/, "", word)
-            collect = sprintf("%s%s", collect, word)
-            # print "Collection so far is: " collect
+            collect_first = word
+            start=i+1
+            break
         }
         else if (word ~ /(one|two|three|four|five|six|seven|eight|nine)/) {
-            # print "found number"
-            start=i+1
-            len = 1
             word_start = match(word, /(one|two|three|four|five|six|seven|eight|nine)/, arr)
             integer = number_array[arr[1]]
-            collect = sprintf("%s%s", collect, integer)
-            # print "Collection so far is: " collect
+            collect_first = integer
+            start=i+1
+            break
         }
         else {
             len++
         }
     }
-    # print "END COLLECTION:" collect
-    number = substr(collect, 1, 1) substr(collect, length(collect), length(collect))
-    print number
+    # Find last number
+    start = length
+    len = 1
+    while(1) {
+        word = substr($0, start, len)
+        if (word ~ /[[:digit:]]/) {
+            gsub(/[a-zA-Z]/, "", word)
+            collect_second = word
+            break
+        }
+        else if (word ~ /(one|two|three|four|five|six|seven|eight|nine)/) {
+            word_start = match(word, /(one|two|three|four|five|six|seven|eight|nine)/, arr)
+            integer = number_array[arr[1]]
+            collect_second = integer
+            break
+        } else {
+            start--
+            len++
+        }
+    }
+    number = collect_first collect_second
     sum += number
 }
 END {

@@ -9,5 +9,5 @@ BEGIN {
     sum+=digit
 }
 END {
-    print(sum)
+    print "TOTAL SUM IS: " sum
 }
